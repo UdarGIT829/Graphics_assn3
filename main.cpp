@@ -32,7 +32,8 @@ namespace
     // SimpleSystem* simpleSystem;
     int toggleViewer = 0;
     // TODO you can modify the number of particles
-    int DEFAULT_PARTICLES = 6;
+    int DEFAULT_PENDULUM_PARTICLES = 2;
+    int DEFAULT_CHAIN_PARTICLES = 6;
 
     PendulumSystem* pendulumSystem;
     ClothSystem* clothSystem;
@@ -59,11 +60,11 @@ namespace
     system = new SimpleSystem();
     timeStepper = new RK4();		
     
-    pendulumSystem = new PendulumSystem(DEFAULT_PARTICLES);
+    pendulumSystem = new PendulumSystem(DEFAULT_PENDULUM_PARTICLES);
     // pendulumSystem = new PendulumSystem(h);
 
     // TODO customize initialization of cloth system
-    // clothSystem = new ClothSystem();
+    clothSystem = new ClothSystem();
   }
 
   // Take a step forward for the particle shower
@@ -83,7 +84,10 @@ namespace
                 timeStepper->takeStep(pendulumSystem, h);
                 break;
             case 2:
-                // timeStepper->takeStep(clothSystem, h);
+                timeStepper->takeStep(pendulumSystem, h);
+                break;
+            case 3:
+                timeStepper->takeStep(clothSystem, h);
                 break;
         }
 
@@ -104,7 +108,7 @@ namespace
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, particleColor);
     
     glutSolidSphere(0.1f,10.0f,10.0f);
-    
+    // printf("HERE-B");
     switch ( toggleViewer )
     {
         case 0:
@@ -114,7 +118,12 @@ namespace
             pendulumSystem->draw();
             break;
         case 2:
+            pendulumSystem->draw();
+            break;
+        case 3:
             // clothSystem->draw();
+            clothSystem->drawSprings();
+            clothSystem->drawclothes();
             break;
     }
 
@@ -179,24 +188,21 @@ namespace
             delete clothSystem;
             clothSystem = NULL;
 
-            if(toggleViewer < 2)
-            {
-                toggleViewer += 1;
-            }
-            else
-            {
-                toggleViewer = 0;
-            }
+            toggleViewer = (toggleViewer + 1) % 4;
+
             switch(toggleViewer)
             {
                 case 0:
                     system = new SimpleSystem();
                     break;
                 case 1:
-                    pendulumSystem = new PendulumSystem(DEFAULT_PARTICLES);
+                    pendulumSystem = new PendulumSystem(DEFAULT_PENDULUM_PARTICLES);
                     break;
                 case 2:
-                    // clothSystem = new ClothSystem();
+                    pendulumSystem = new PendulumSystem(DEFAULT_CHAIN_PARTICLES);
+                    break;
+                case 3:
+                    clothSystem = new ClothSystem();
                     break;
 
             }
@@ -409,7 +415,6 @@ int main( int argc, char* argv[] )
     glutDisplayFunc( drawScene );
 
     printf("Initial Draw scene complete\n");
-
 
 
     // Trigger timerFunc every 20 msec
